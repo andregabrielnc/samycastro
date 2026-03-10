@@ -50,6 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Get diagnostics info if requested
 $diagnostics = [];
 if ($showDiagnostics) {
+    // Test connection again (might have recovered since initial check)
+    $dbTest = testDatabaseConnection();
+    if ($dbTest['success'] && $dbError) {
+        $dbError = false;
+        $error = '';
+    }
     $diagnostics = [
         'DB_HOST' => defined('DB_HOST') ? DB_HOST : 'não definido',
         'DB_NAME' => defined('DB_NAME') ? DB_NAME : 'não definido',
