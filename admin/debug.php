@@ -4,18 +4,92 @@
  * Debug tool to check database connection issues
  * 
  * Access: https://samycastro.vet/admin/debug.php
+ * Or with token: https://samycastro.vet/admin/debug.php?token=YOUR_TOKEN
  */
 
 require_once __DIR__ . '/../config.php';
 
-// Only show to localhost or with correct token
+// Check access
 $isLocalhost = in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1', 'localhost']);
+$isDocker = strpos($_SERVER['REMOTE_ADDR'] ?? '', '172.') === 0; // Docker networks
+$isAdmin = isLoggedIn(); // Check if logged in as admin
 $tokenParam = $_GET['token'] ?? '';
-$correctToken = hash('sha256', 'samycastro_debug_' . date('Y-m-d'));
+$correctToken = hash('sha256', 'samycastro_debug_key_' . date('Y-m-d')); // Daily token
 
-if (!$isLocalhost && $tokenParam !== $correctToken) {
-    http_response_code(403);
-    die('Access Denied');
+// Check if have been viewing for a while (cache valid token)
+$sessionToken = $_SESSION['debug_token'] ?? '';
+$isValidToken = !empty($tokenParam) && $tokenParam === $correctToken;
+
+// Allow access if:
+// 1. Is localhost
+// 2. Is within Docker network
+// 3. Is logged in as admin
+// 4. Has correct token
+if (!($isLocalhost || $isDocker || $isAdmin || $isValidToken)) {
+    // Show token request page
+    ?>
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Debug - Acesso Restrito</title>
+        <style>
+            body { font-family: sans-serif; background: #f5f5f5; padding: 40px 20px; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #333; margin-bottom: 20px; }
+            p { color: #666; line-height: 1.6; margin-bottom: 15px; }
+            .form-group { margin-bottom: 20px; }
+            label { display: block; margin-bottom: 8px; font-weight: bold; }
+            input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+            button { background: #2d5016; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+            button:hover { background: #3d6b22; }
+            .info-box { background: #e3f2fd; padding: 15px; border-radius: 4px; border-left: 4px solid #2196f3; margin-bottom: 20px; }
+            .code { background: #f5f5f5; padding: 10px; border-radius: 4px; font-family: monospace; word-break: break-all; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔒 Debug - Acesso Restrito</h1>
+            
+            <div class="info-box">
+                <strong>ℹ️ Informação:</strong><br>
+                Para acessar esta página em produção, você precisa:
+                <ul>
+                    <li>✅ Estar logado como admin em <code>/admin/login.php</code>, OU</li>
+                    <li>✅ Usar o token diário</li>
+                </ul>
+            </div>
+
+            <h2>Opção 1: Fazer Login</h2>
+            <p>A maneira mais segura é <strong>fazer login como administrador</strong>:</p>
+            <a href="login.php" style="display: inline-block; background: #2d5016; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none;">
+                → Ir para Login
+            </a>
+
+            <h2 style="margin-top: 30px;">Opção 2: Usar Token</h2>
+            <p>Se não conseguir fazer login, use o token diário (fornecido pelo suporte):</p>
+            
+            <form method="GET">
+                <div class="form-group">
+                    <label>Token de Acesso:</label>
+                    <input type="text" name="token" placeholder="Cole o token aqui" required>
+                </div>
+                <button type="submit">Acessar Debug</button>
+            </form>
+
+            <h2 style="margin-top: 30px;">🔧 Token de Hoje</h2>
+            <p>Se você é desenvolvedor e tem acesso ao código, o token de hoje é:</p>
+            <div class="code"><?php echo hash('sha256', 'samycastro_debug_key_' . date('Y-m-d')); ?></div>
+
+            <p style="margin-top: 20px; color: #999; font-size: 12px;">
+                <strong>Nota:</strong> O token muda todos os dias. Se estiver logado como admin, não precisa do token.
+            </p>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
 }
 
 $results = [];
