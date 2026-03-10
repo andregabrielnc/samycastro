@@ -11,13 +11,19 @@
 *.md
 README.md
 DEPLOYMENT_*.md
+DOCKER_GUIDE.md
 LICENSE
 
 # Docker
 .dockerignore
 docker-compose.yml
-docker-compose.dev.yml
+docker-compose.*.yml
 Dockerfile.*
+
+# Setup files (use auto-setup.php instead)
+install.php
+setup.php
+generate-hash.php
 
 # Node modules (if any)
 node_modules/
