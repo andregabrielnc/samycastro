@@ -24,7 +24,7 @@ if (session_status() === PHP_SESSION_NONE) {
 /**
  * Get PDO database connection
  */
-function getDB() {
+function getDB($returnError = false) {
     static $pdo = null;
     if ($pdo === null) {
         try {
@@ -35,10 +35,28 @@ function getDB() {
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
         } catch (PDOException $e) {
+            if ($returnError) {
+                return ['error' => $e->getMessage()];
+            }
             die('Erro na conexão com o banco de dados: ' . $e->getMessage());
         }
     }
     return $pdo;
+}
+
+/**
+ * Test database connection
+ */
+function testDatabaseConnection() {
+    try {
+        $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
+        $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        ]);
+        return ['success' => true];
+    } catch (PDOException $e) {
+        return ['success' => false, 'error' => $e->getMessage()];
+    }
 }
 
 /**

@@ -7,29 +7,58 @@ if (isLoggedIn()) {
 }
 
 $error = '';
+$dbError = false;
+$showDiagnostics = isset($_GET['diagnostics']) && $_GET['diagnostics'] === '1';
+
+// Check database connection
+$dbTest = testDatabaseConnection();
+if (!$dbTest['success']) {
+    $dbError = true;
+    $error = 'Erro ao conectar ao banco de dados.';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
 
-    try {
-        $db = getDB();
-        $stmt = $db->prepare('SELECT * FROM admin_users WHERE username = ?');
-        $stmt->execute([$username]);
-        $user = $stmt->fetch();
+    if ($dbError) {
+        $error = 'Erro ao conectar ao banco de dados. Verifique as configurações em ?diagnostics=1';
+    } else {
+        try {
+            $db = getDB();
+            $stmt = $db->prepare('SELECT * FROM admin_users WHERE username = ?');
+            $stmt->execute([$username]);
+            $user = $stmt->fetch();
 
-        if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['admin_logged_in'] = true;
-            $_SESSION['admin_id'] = $user['id'];
-            $_SESSION['admin_name'] = $user['name'];
-            $_SESSION['admin_username'] = $user['username'];
-            header('Location: index.php');
-            exit;
-        } else {
-            $error = 'Usuário ou senha inválidos.';
+            if ($user && password_verify($password, $user['password'])) {
+                $_SESSION['admin_logged_in'] = true;
+                $_SESSION['admin_id'] = $user['id'];
+                $_SESSION['admin_name'] = $user['name'];
+                $_SESSION['admin_username'] = $user['username'];
+                header('Location: index.php');
+                exit;
+            } else {
+                $error = 'Usuário ou senha inválidos.';
+            }
+        } catch (Exception $e) {
+            $error = 'Erro ao conectar ao banco de dados. Verifique as configurações.';
+            $dbError = true;
         }
-    } catch (Exception $e) {
-        $error = 'Erro ao conectar ao banco de dados. Verifique as configurações.';
     }
+}
+
+// Get diagnostics info if requested
+$diagnostics = [];
+if ($showDiagnostics) {
+    $diagnostics = [
+        'DB_HOST' => defined('DB_HOST') ? DB_HOST : 'não definido',
+        'DB_NAME' => defined('DB_NAME') ? DB_NAME : 'não definido',
+        'DB_USER' => defined('DB_USER') ? DB_USER : 'não definido',
+        'DB_PASS' => defined('DB_PASS') ? '***' : 'não definido',
+        'PHP_VERSION' => phpversion(),
+        'MYSQL_EXTENSION' => extension_loaded('pdo_mysql') ? 'OK' : 'NÃO INSTALADO',
+        'DATABASE_TEST' => $dbTest,
+    ];
 }
 ?>
 <!DOCTYPE html>
@@ -55,10 +84,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .input-wrap input:focus { border-color: #2d5016; }
         .btn-login { width: 100%; padding: 16px; background: #2d5016; color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.3s; font-family: 'Inter', sans-serif; }
         .btn-login:hover { background: #3d6b22; }
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
         .error { background: #fce4ec; color: #c62828; padding: 12px 16px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
         .back-link { text-align: center; margin-top: 20px; }
         .back-link a { color: #888; font-size: 0.82rem; text-decoration: none; }
         .back-link a:hover { color: #2d5016; }
+        .diagnostics { display: none; background: #f5f5f5; padding: 20px; border-radius: 12px; margin-top: 20px; font-family: monospace; font-size: 0.75rem; }
+        .diagnostics.show { display: block; }
+        .diagnostics-title { font-weight: bold; margin-bottom: 10px; }
+        .diagnostics-item { padding: 8px 0; border-bottom: 1px solid #e0e0e0; }
+        .diagnostics-item:last-child { border-bottom: none; }
+        .diagnostics-key { color: #666; }
+        .diagnostics-value { color: #2d5016; font-weight: bold; }
+        .diagnostics-error { color: #c62828; }
+        .diagnostics-success { color: #2e7d32; }
     </style>
 </head>
 <body>
@@ -77,19 +116,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label>Usuário</label>
                 <div class="input-wrap">
                     <i class="fas fa-user"></i>
-                    <input type="text" name="username" placeholder="Seu usuário" required autofocus>
+                    <input type="text" name="username" placeholder="Seu usuário" required autofocus <?= $dbError ? 'disabled' : '' ?>>
                 </div>
             </div>
             <div class="form-group">
                 <label>Senha</label>
                 <div class="input-wrap">
                     <i class="fas fa-lock"></i>
-                    <input type="password" name="password" placeholder="Sua senha" required>
+                    <input type="password" name="password" placeholder="Sua senha" required <?= $dbError ? 'disabled' : '' ?>>
                 </div>
             </div>
-            <button type="submit" class="btn-login"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+            <button type="submit" class="btn-login" <?= $dbError ? 'disabled' : '' ?>><i class="fas fa-sign-in-alt"></i> Entrar</button>
         </form>
-        <div class="back-link"><a href="../index.php"><i class="fas fa-arrow-left"></i> Voltar ao site</a></div>
+
+        <?php if ($dbError): ?>
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="?diagnostics=1" style="color: #c62828; text-decoration: underline; font-size: 0.85rem;">
+                <i class="fas fa-wrench"></i> Ver Diagnóstico
+            </a>
+        </div>
+        <?php endif; ?>
+
+        <div class="back-link"><a href="../"><i class="fas fa-arrow-left"></i> Voltar ao site</a></div>
+
+        <?php if ($showDiagnostics && !empty($diagnostics)): ?>
+        <div class="diagnostics show">
+            <div class="diagnostics-title">🔧 DIAGNÓSTICO DO SISTEMA</div>
+            <div class="diagnostics-item">
+                <span class="diagnostics-key">Host do BD:</span><br>
+                <span class="diagnostics-value"><?= e($diagnostics['DB_HOST']) ?></span>
+            </div>
+            <div class="diagnostics-item">
+                <span class="diagnostics-key">Nome do BD:</span><br>
+                <span class="diagnostics-value"><?= e($diagnostics['DB_NAME']) ?></span>
+            </div>
+            <div class="diagnostics-item">
+                <span class="diagnostics-key">Usuário BD:</span><br>
+                <span class="diagnostics-value"><?= e($diagnostics['DB_USER']) ?></span>
+            </div>
+            <div class="diagnostics-item">
+                <span class="diagnostics-key">PHP Version:</span><br>
+                <span class="diagnostics-value"><?= e($diagnostics['PHP_VERSION']) ?></span>
+            </div>
+            <div class="diagnostics-item">
+                <span class="diagnostics-key">Extensão PDO MySQL:</span><br>
+                <span class="<?= $diagnostics['MYSQL_EXTENSION'] === 'OK' ? 'diagnostics-success' : 'diagnostics-error' ?>">
+                    <?= e($diagnostics['MYSQL_EXTENSION']) ?>
+                </span>
+            </div>
+            <div class="diagnostics-item">
+                <span class="diagnostics-key">Teste de Conexão:</span><br>
+                <span class="<?= $diagnostics['DATABASE_TEST']['success'] ? 'diagnostics-success' : 'diagnostics-error' ?>">
+                    <?= $diagnostics['DATABASE_TEST']['success'] ? '✓ SUCESSO' : '✗ ERRO: ' . e($diagnostics['DATABASE_TEST']['error']) ?>
+                </span>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 </body>
 </html>
