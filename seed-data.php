@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Script para popular banco de dados com dados de exemplo
  * Use este arquivo para inserir dados mockados que o usuário poderá editar/deletar

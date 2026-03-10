@@ -15,12 +15,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($_FILES as $key => $file) {
             if ($file['error'] === UPLOAD_ERR_OK && strpos($key, 'file_') === 0) {
                 $settingKey = substr($key, 5);
-                $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-                $newName = $settingKey . '_' . time() . '.' . $ext;
-                $dest = __DIR__ . '/../uploads/' . $newName;
-                if (!is_dir(__DIR__ . '/../uploads')) mkdir(__DIR__ . '/../uploads', 0755, true);
-                if (move_uploaded_file($file['tmp_name'], $dest)) {
-                    $db->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?")->execute(['uploads/' . $newName, $settingKey]);
+                $allowedMime = ['image/jpeg','image/png','image/gif','image/webp'];
+                $mime = mime_content_type($file['tmp_name']);
+                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                $allowedExt = ['jpg','jpeg','png','gif','webp'];
+                if (in_array($mime, $allowedMime) && in_array($ext, $allowedExt)) {
+                    $newName = $settingKey . '_' . time() . '.' . $ext;
+                    $dest = __DIR__ . '/../uploads/' . $newName;
+                    if (!is_dir(__DIR__ . '/../uploads')) mkdir(__DIR__ . '/../uploads', 0755, true);
+                    if (move_uploaded_file($file['tmp_name'], $dest)) {
+                        $db->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?")->execute(['uploads/' . $newName, $settingKey]);
+                    }
                 }
             }
         }

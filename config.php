@@ -4,6 +4,11 @@
  * Edit these values to match your MySQL server settings.
  */
 
+// Session must start before any output
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_NAME', getenv('DB_NAME') ?: 'samlavet');
 define('DB_USER', getenv('DB_USER') ?: 'root');
@@ -15,11 +20,6 @@ define('SITE_NAME', 'Dra. Samla Cristie');
 define('SITE_URL', ''); // Leave empty for relative URLs
 define('UPLOAD_DIR', __DIR__ . '/uploads/');
 define('UPLOAD_URL', 'uploads/');
-
-// Session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 
 /**
  * Get PDO database connection

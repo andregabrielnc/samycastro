@@ -15,11 +15,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($fields as $f) $data[$f] = $_POST[$f] ?? '';
     $data['active'] = isset($_POST['active']) ? 1 : 0;
     if (!empty($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
-        $ext = pathinfo($_FILES['image_file']['name'], PATHINFO_EXTENSION);
-        $nm = 'svc_'.time().'.'.$ext;
-        if (!is_dir(__DIR__.'/../uploads')) mkdir(__DIR__.'/../uploads',0755,true);
-        move_uploaded_file($_FILES['image_file']['tmp_name'], __DIR__.'/../uploads/'.$nm);
-        $data['image'] = 'uploads/'.$nm;
+        $allowedMime = ['image/jpeg','image/png','image/gif','image/webp'];
+        $mime = mime_content_type($_FILES['image_file']['tmp_name']);
+        $allowedExt = ['jpg','jpeg','png','gif','webp'];
+        $ext = strtolower(pathinfo($_FILES['image_file']['name'], PATHINFO_EXTENSION));
+        if (in_array($mime, $allowedMime) && in_array($ext, $allowedExt)) {
+            $nm = 'svc_'.time().'.'.$ext;
+            if (!is_dir(__DIR__.'/../uploads')) mkdir(__DIR__.'/../uploads',0755,true);
+            move_uploaded_file($_FILES['image_file']['tmp_name'], __DIR__.'/../uploads/'.$nm);
+            $data['image'] = 'uploads/'.$nm;
+        }
     }
     if ($id) {
         $sets = implode(', ', array_map(fn($f)=>"$f=?", $fields));
@@ -32,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header("Location: services.php?msg=ok"); exit;
 }
 
-if (isset($_GET['edit'])) { $editItem = $db->prepare("SELECT * FROM {$table} WHERE id=?")->execute([$_GET['edit']]); $editItem = $db->prepare("SELECT * FROM {$table} WHERE id=?"); $editItem->execute([$_GET['edit']]); $editItem = $editItem->fetch(); }
+if (isset($_GET['edit'])) { $stmt = $db->prepare("SELECT * FROM {$table} WHERE id=?"); $stmt->execute([$_GET['edit']]); $editItem = $stmt->fetch(); }
 if (isset($_GET['new'])) $editItem = ['id'=>'','title'=>'','description'=>'','icon'=>'fas fa-paw','image'=>'','whatsapp_text'=>'','sort_order'=>0,'active'=>1];
 $items = $db->query("SELECT * FROM {$table} ORDER BY sort_order")->fetchAll();
 if (isset($_GET['msg'])) $msg = 'Operação realizada!';

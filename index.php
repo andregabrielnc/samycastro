@@ -211,7 +211,7 @@ $waLink = "https://wa.me/{$wa}?text=" . urlencode("Olá Samy vim do site pode me
                 <div class="google-rating">
                     <div class="google-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
                     <span class="google-score">4.9</span>
-                    <span class="google-count">baseado em <?= count($testimonials) * 14 + 3 ?> avaliações</span>
+                    <span class="google-count">baseado em <?= count($testimonials) ?> avaliações</span>
                     <i class="fab fa-google google-icon"></i>
                 </div>
             </div>

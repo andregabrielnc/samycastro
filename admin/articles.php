@@ -25,11 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $image = $_POST['current_image'] ?? '';
 
     if (!empty($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-        $newName = 'blog_' . time() . '.' . $ext;
-        if (!is_dir(__DIR__.'/../uploads')) mkdir(__DIR__.'/../uploads', 0755, true);
-        move_uploaded_file($_FILES['image']['tmp_name'], __DIR__.'/../uploads/'.$newName);
-        $image = 'uploads/' . $newName;
+        $allowedMime = ['image/jpeg','image/png','image/gif','image/webp'];
+        $mime = mime_content_type($_FILES['image']['tmp_name']);
+        $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allowedExt = ['jpg','jpeg','png','gif','webp'];
+        if (in_array($mime, $allowedMime) && in_array($ext, $allowedExt)) {
+            $newName = 'blog_' . time() . '.' . $ext;
+            if (!is_dir(__DIR__.'/../uploads')) mkdir(__DIR__.'/../uploads', 0755, true);
+            move_uploaded_file($_FILES['image']['tmp_name'], __DIR__.'/../uploads/'.$newName);
+            $image = 'uploads/' . $newName;
+        }
     }
 
     if ($id) {

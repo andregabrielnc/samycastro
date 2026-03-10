@@ -8,7 +8,9 @@ if (isLoggedIn()) {
 
 $error = '';
 $dbError = false;
-$showDiagnostics = isset($_GET['diagnostics']) && $_GET['diagnostics'] === '1';
+// Diagnostics only shown when DB fails AND request comes from localhost
+$isLocalRequest = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', 'localhost']);
+$showDiagnostics = isset($_GET['diagnostics']) && $_GET['diagnostics'] === '1' && $isLocalRequest;
 
 // Check database connection
 $dbTest = testDatabaseConnection();
@@ -31,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = $stmt->fetch();
 
             if ($user && password_verify($password, $user['password'])) {
+                session_regenerate_id(true);
                 $_SESSION['admin_logged_in'] = true;
                 $_SESSION['admin_id'] = $user['id'];
                 $_SESSION['admin_name'] = $user['name'];
@@ -135,7 +138,7 @@ if ($showDiagnostics) {
             <button type="submit" class="btn-login" <?= $dbError ? 'disabled' : '' ?>><i class="fas fa-sign-in-alt"></i> Entrar</button>
         </form>
 
-        <?php if ($dbError): ?>
+        <?php if ($dbError && $isLocalRequest): ?>
         <div style="margin-top: 20px; text-align: center;">
             <a href="?diagnostics=1" style="color: #c62828; text-decoration: underline; font-size: 0.85rem;">
                 <i class="fas fa-wrench"></i> Ver Diagnóstico
