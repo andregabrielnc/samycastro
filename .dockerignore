@@ -1,8 +1,51 @@
+# Git
 .git
 .gitignore
-.claude
-README.md
+
+# Environment
 .env
+.env.*.local
+.env.local
+
+# Documentation
 *.md
-docker-compose.yml
+README.md
+DEPLOYMENT_*.md
+LICENSE
+
+# Docker
 .dockerignore
+docker-compose.yml
+docker-compose.dev.yml
+Dockerfile.*
+
+# Node modules (if any)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Cache
+.cache/
+__pycache__/
+*.pyc
+
+# Build
+build/
+dist/
+.next/
+
+# Testing
+.coverage/
+.pytest_cache/
+
+# Scripts
+build-and-push.sh
+*.sh

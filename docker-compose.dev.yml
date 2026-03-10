@@ -1,13 +1,19 @@
 version: '3.8'
 
+# Development environment with live code updates
+# Usage: docker-compose -f docker-compose.dev.yml up
+
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: samycastro-web
-    expose:
-      - "80"
+    container_name: samycastro-web-dev
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+      - ./uploads:/var/www/html/uploads
     environment:
       - DB_HOST=db
       - DB_NAME=${DB_NAME:-samlavet}
@@ -22,17 +28,17 @@ services:
 
   db:
     image: mysql:8.0
-    container_name: samycastro-db
+    container_name: samycastro-db-dev
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
       MYSQL_DATABASE: ${DB_NAME:-samlavet}
       MYSQL_USER: ${DB_USER:-samlavet_user}
       MYSQL_PASSWORD: ${DB_PASS:-samlavet_password}
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mysql-data-dev:/var/lib/mysql
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
-    expose:
-      - "3306"
+    ports:
+      - "3306:3306"
     networks:
       - samycastro-network
     healthcheck:
@@ -44,14 +50,14 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: samycastro-phpmyadmin
+    container_name: samycastro-phpmyadmin-dev
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
       PMA_USER: ${DB_USER:-samlavet_user}
       PMA_PASSWORD: ${DB_PASS:-samlavet_password}
-    expose:
-      - "80"
+    ports:
+      - "8080:80"
     depends_on:
       - db
     networks:
@@ -63,5 +69,5 @@ networks:
     driver: bridge
 
 volumes:
-  mysql-data:
+  mysql-data-dev:
     driver: local
