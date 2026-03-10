@@ -34,10 +34,10 @@ if(isset($_GET['msg']))$msg='Operação realizada!';
 </div><div class="form-actions"><button type="submit" class="btn-save"><i class="fas fa-save"></i> Salvar</button><a href="clients.php" class="btn-cancel">Cancelar</a></div></form></div>
 <?php else:?>
 <div class="admin-card"><div class="admin-card-header"><h3><?=count($items)?> clientes</h3><a href="clients.php?new=1" class="btn-add"><i class="fas fa-plus"></i> Novo</a></div>
-<table class="admin-table"><thead><tr><th>Ícone</th><th>Nome</th><th>Tipo</th><th>Local</th><th>Ações</th></tr></thead><tbody>
+<div class="table-responsive"><table class="admin-table"><thead><tr><th>Ícone</th><th>Nome</th><th>Tipo</th><th>Local</th><th>Ações</th></tr></thead><tbody>
 <?php foreach($items as $i):?><tr>
 <td><div style="width:36px;height:36px;border-radius:50%;background:<?=e($i['logo_color'])?>;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.9rem;"><i class="<?=e($i['logo_icon'])?>"></i></div></td>
 <td><strong><?=e($i['name'])?></strong></td><td><?=e($i['type'])?></td><td><?=e($i['location'])?></td>
 <td><a href="clients.php?edit=<?=$i['id']?>" class="btn-sm btn-edit"><i class="fas fa-edit"></i></a> <a href="clients.php?delete=<?=$i['id']?>" class="btn-sm btn-delete" onclick="return confirm('Excluir?')"><i class="fas fa-trash"></i></a></td></tr>
-<?php endforeach;?></tbody></table></div>
+<?php endforeach;?></tbody></table></div></div>
 <?php endif;?></div></div></div></body></html>

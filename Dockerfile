@@ -51,5 +51,5 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost/ || exit 1
 
-# Start Apache in foreground
-CMD ["apache2-foreground"]
+# Entrypoint: ensure uploads writable at runtime then start Apache
+CMD ["sh", "-c", "mkdir -p /var/www/html/uploads && chmod 777 /var/www/html/uploads && apache2-foreground"]

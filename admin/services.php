@@ -81,11 +81,11 @@ if (isset($_GET['msg'])) $msg = 'Operação realizada!';
             <?php else: ?>
             <div class="admin-card">
                 <div class="admin-card-header"><h3><?= count($items) ?> serviços</h3><a href="services.php?new=1" class="btn-add"><i class="fas fa-plus"></i> Novo</a></div>
-                <table class="admin-table"><thead><tr><th>Img</th><th>Título</th><th>Ordem</th><th>Status</th><th>Ações</th></tr></thead><tbody>
+                <div class="table-responsive"><table class="admin-table"><thead><tr><th>Img</th><th>Título</th><th>Ordem</th><th>Status</th><th>Ações</th></tr></thead><tbody>
                 <?php foreach ($items as $i): ?>
-                <tr><td><img src="../<?= e($i['image']) ?>"></td><td><?= e($i['title']) ?></td><td><?= $i['sort_order'] ?></td><td><?= $i['active']?'Ativo':'Inativo' ?></td>
+                <tr><td><img src="../<?= e($i['image']) ?>"></td><td><?= e($i['title']) ?></td><td><?= $i['sort_order'] ?></td><td><span class="<?= $i['active']?'badge-active':'badge-inactive' ?>"><?= $i['active']?'Ativo':'Inativo' ?></span></td>
                 <td><a href="services.php?edit=<?= $i['id'] ?>" class="btn-sm btn-edit"><i class="fas fa-edit"></i></a> <a href="services.php?delete=<?= $i['id'] ?>" class="btn-sm btn-delete" onclick="return confirm('Excluir?')"><i class="fas fa-trash"></i></a></td></tr>
-                <?php endforeach; ?></tbody></table>
+                <?php endforeach; ?></tbody></table></div>
             </div>
             <?php endif; ?>
         </div>

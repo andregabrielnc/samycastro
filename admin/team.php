@@ -36,8 +36,8 @@ if(isset($_GET['msg']))$msg='Operação realizada!';
 </div><div class="form-actions"><button type="submit" class="btn-save"><i class="fas fa-save"></i> Salvar</button><a href="team.php" class="btn-cancel">Cancelar</a></div></form></div>
 <?php else:?>
 <div class="admin-card"><div class="admin-card-header"><h3><?=count($items)?> membros</h3><a href="team.php?new=1" class="btn-add"><i class="fas fa-plus"></i> Novo</a></div>
-<table class="admin-table"><thead><tr><th>Img</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead><tbody>
+<div class="table-responsive"><table class="admin-table"><thead><tr><th>Img</th><th>Nome</th><th>Cargo</th><th>Ações</th></tr></thead><tbody>
 <?php foreach($items as $i):?><tr><td><img src="../<?=e($i['image'])?>"></td><td><?=e($i['name'])?></td><td><?=e($i['role'])?></td>
 <td><a href="team.php?edit=<?=$i['id']?>" class="btn-sm btn-edit"><i class="fas fa-edit"></i></a> <a href="team.php?delete=<?=$i['id']?>" class="btn-sm btn-delete" onclick="return confirm('Excluir?')"><i class="fas fa-trash"></i></a></td></tr>
-<?php endforeach;?></tbody></table></div>
+<?php endforeach;?></tbody></table></div></div>
 <?php endif;?></div></div></div></body></html>

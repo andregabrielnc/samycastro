@@ -60,7 +60,7 @@ $recentArticles = $db->query("SELECT * FROM articles ORDER BY updated_at DESC LI
                     <h3><i class="fas fa-clock"></i> Artigos Recentes</h3>
                     <a href="articles.php" class="btn-add"><i class="fas fa-plus"></i> Novo Artigo</a>
                 </div>
-                <table class="admin-table">
+                <div class="table-responsive"><table class="admin-table">
                     <thead><tr><th>Imagem</th><th>Título</th><th>Categoria</th><th>Views</th><th>Data</th><th>Ações</th></tr></thead>
                     <tbody>
                     <?php foreach ($recentArticles as $a): ?>
@@ -74,7 +74,7 @@ $recentArticles = $db->query("SELECT * FROM articles ORDER BY updated_at DESC LI
                     </tr>
                     <?php endforeach; ?>
                     </tbody>
-                </table>
+                </table></div>
             </div>
         </div>
     </div>

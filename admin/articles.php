@@ -119,7 +119,7 @@ if (isset($_GET['msg'])) $msg = $_GET['msg']==='saved'?'Artigo salvo!':'Artigo e
                     <h3><?= count($articles) ?> artigos</h3>
                     <a href="articles.php?new=1" class="btn-add"><i class="fas fa-plus"></i> Novo Artigo</a>
                 </div>
-                <table class="admin-table">
+                <div class="table-responsive"><table class="admin-table">
                     <thead><tr><th>Img</th><th>Título</th><th>Categoria</th><th>Views</th><th>Status</th><th>Ações</th></tr></thead>
                     <tbody>
                     <?php foreach ($articles as $a): ?>
@@ -128,7 +128,7 @@ if (isset($_GET['msg'])) $msg = $_GET['msg']==='saved'?'Artigo salvo!':'Artigo e
                         <td><strong><?= e($a['title']) ?></strong></td>
                         <td><?= e($a['category']) ?></td>
                         <td><?= $a['views'] ?></td>
-                        <td><?= $a['active']?'<span style="color:#2e7d32">Ativo</span>':'<span style="color:#888">Inativo</span>' ?></td>
+                        <td><span class="<?= $a['active']?'badge-active':'badge-inactive' ?>"><?= $a['active']?'Ativo':'Inativo' ?></span></td>
                         <td>
                             <a href="articles.php?edit=<?= $a['id'] ?>" class="btn-sm btn-edit"><i class="fas fa-edit"></i></a>
                             <a href="articles.php?delete=<?= $a['id'] ?>" class="btn-sm btn-delete" onclick="return confirm('Excluir este artigo?')"><i class="fas fa-trash"></i></a>
@@ -136,7 +136,7 @@ if (isset($_GET['msg'])) $msg = $_GET['msg']==='saved'?'Artigo salvo!':'Artigo e
                     </tr>
                     <?php endforeach; ?>
                     </tbody>
-                </table>
+                </table></div>
             </div>
             <?php endif; ?>
         </div>
