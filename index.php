@@ -19,9 +19,9 @@ try {
         $faqGroups[$f['category']]['items'][] = $f;
     }
 } catch (Exception $ex) {
-    // Fallback: show static page if DB not available
-    header('Location: index.html');
-    exit;
+    // Fallback values if DB not available
+    $s = []; $services = []; $team = []; $testimonials = [];
+    $articles = []; $faqGroups = []; $specialties = []; $clients = [];
 }
 
 $wa = $s['whatsapp_number'] ?? '5562994793553';
