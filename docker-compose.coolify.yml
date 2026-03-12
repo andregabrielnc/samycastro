@@ -2,13 +2,10 @@ version: '3.8'
 
 services:
   web:
-    image: php:8.2-apache
+    image: andregabrielnc/samycastro:latest
     container_name: samycastro-web
-    working_dir: /var/www/html
     expose:
       - "80"
-    volumes:
-      - .:/var/www/html
     environment:
       - DB_HOST=db
       - DB_NAME=${DB_NAME:-samlavet}
@@ -20,21 +17,6 @@ services:
     networks:
       - samycastro-network
     restart: unless-stopped
-    entrypoint: >
-      bash -c "
-      apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev &&
-      docker-php-ext-configure gd --with-freetype --with-jpeg &&
-      docker-php-ext-install -j\$$(nproc) gd pdo pdo_mysql mysqli &&
-      a2enmod rewrite &&
-      echo '<Directory /var/www/html>
-          Options Indexes FollowSymLinks
-          AllowOverride All
-          Require all granted
-      </Directory>' > /etc/apache2/conf-available/app.conf &&
-      a2enconf app &&
-      chown -R www-data:www-data /var/www/html &&
-      apache2-foreground
-      "
 
   db:
     image: mysql:8.0
