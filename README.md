@@ -4,50 +4,46 @@ Sistema completo de gerenciamento de conteúdo (CMS) para clínica veterinária 
 
 ## 🚀 Deploy no Coolify
 
-### Pré-requisitos
-- Conta no Coolify
-- Repositório GitHub configurado
+### Passo a Passo
 
-### Passos para Deploy
-
-1. **No Coolify, crie um novo projeto:**
-   - Vá em "Projects" → "New Project"
+1. **No Coolify, crie um novo Service:**
+   - Clique em "+ Add" → "Service"
    - Escolha "Docker Compose"
 
-2. **Configure o repositório:**
-   - URL: `https://github.com/andregabrielnc/samycastro.git`
-   - Branch: `main`
+2. **Cole o conteúdo do arquivo `docker-compose.coolify.yml`:**
+   - Abra o arquivo `docker-compose.coolify.yml` no repositório
+   - Copie TODO o conteúdo
+   - Cole no campo "Docker Compose file" do Coolify
 
-3. **Configure as variáveis de ambiente:**
-   Vá em "Environment Variables" e adicione:
+3. **Configure as variáveis de ambiente no Coolify:**
    ```
    DB_NAME=samlavet
    DB_USER=samlavet_user
    DB_PASS=SuaSenhaSegura123!
    MYSQL_ROOT_PASSWORD=SenhaRootSegura123!
-   ADMIN_USER=admin
-   ADMIN_PASS=SuaSenhaAdmin123!
    ```
-
    **IMPORTANTE:** Altere as senhas acima para valores seguros!
 
-4. **Deploy:**
-   - Clique em "Deploy"
-   - Aguarde a construção dos containers
+4. **Salve e faça Deploy:**
+   - Clique em "Save"
+   - Aguarde o deploy completar (pode levar alguns minutos na primeira vez)
 
 5. **Acesse o instalador:**
    - Após o deploy, acesse: `https://seu-dominio.com/install.php`
-   - Preencha com as credenciais configuradas nas variáveis de ambiente:
-     - Host: `db`
-     - Nome do Banco: valor de `DB_NAME`
-     - Usuário MySQL: valor de `DB_USER`
-     - Senha MySQL: valor de `DB_PASS`
-     - Usuário Admin: valor de `ADMIN_USER`
-     - Senha Admin: valor de `ADMIN_PASS`
+   - Preencha o formulário com:
+     - **Host**: `db`
+     - **Nome do Banco**: `samlavet`
+     - **Usuário MySQL**: `samlavet_user`
+     - **Senha MySQL**: a senha que você configurou em `DB_PASS`
+     - **Usuário Admin**: `admin`
+     - **Senha Admin**: uma senha segura de sua escolha
 
 6. **Acesse o painel administrativo:**
    - URL: `https://seu-dominio.com/admin/`
-   - Use as credenciais definidas no passo anterior
+   - Use as credenciais de admin que você definiu
+
+7. **IMPORTANTE - Segurança:**
+   - Delete ou renomeie o arquivo `install.php` após a instalação
 
 ### 🐳 Deploy Local com Docker
 

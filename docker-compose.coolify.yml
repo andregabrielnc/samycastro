@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  web:
+    image: php:8.2-apache
+    container_name: samycastro-web
+    working_dir: /var/www/html
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME:-samlavet}
+      - DB_USER=${DB_USER:-samlavet_user}
+      - DB_PASS=${DB_PASS:-samlavet_password}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - samycastro-network
+    restart: unless-stopped
+    entrypoint: >
+      bash -c "
+      apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev &&
+      docker-php-ext-configure gd --with-freetype --with-jpeg &&
+      docker-php-ext-install -j\$$(nproc) gd pdo pdo_mysql mysqli &&
+      a2enmod rewrite &&
+      echo '<Directory /var/www/html>
+          Options Indexes FollowSymLinks
+          AllowOverride All
+          Require all granted
+      </Directory>' > /etc/apache2/conf-available/app.conf &&
+      a2enconf app &&
+      chown -R www-data:www-data /var/www/html &&
+      apache2-foreground
+      "
+
+  db:
+    image: mysql:8.0
+    container_name: samycastro-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_NAME:-samlavet}
+      MYSQL_USER: ${DB_USER:-samlavet_user}
+      MYSQL_PASSWORD: ${DB_PASS:-samlavet_password}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "3306:3306"
+    networks:
+      - samycastro-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: samycastro-phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER:-samlavet_user}
+      PMA_PASSWORD: ${DB_PASS:-samlavet_password}
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - samycastro-network
+    restart: unless-stopped
+
+networks:
+  samycastro-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
