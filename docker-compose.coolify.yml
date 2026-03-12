@@ -5,8 +5,8 @@ services:
     image: php:8.2-apache
     container_name: samycastro-web
     working_dir: /var/www/html
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     volumes:
       - .:/var/www/html
     environment:
@@ -47,8 +47,8 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
-    ports:
-      - "3306:3306"
+    expose:
+      - "3306"
     networks:
       - samycastro-network
     healthcheck:
@@ -66,8 +66,8 @@ services:
       PMA_PORT: 3306
       PMA_USER: ${DB_USER:-samlavet_user}
       PMA_PASSWORD: ${DB_PASS:-samlavet_password}
-    ports:
-      - "8080:80"
+    expose:
+      - "80"
     depends_on:
       - db
     networks:
