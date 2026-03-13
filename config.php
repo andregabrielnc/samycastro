@@ -114,3 +114,107 @@ function getAllSettings() {
         return [];
     }
 }
+
+/**
+ * CSRF Protection
+ */
+function generateCsrfToken() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function verifyCsrfToken($token) {
+    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+
+/**
+ * Secure File Upload
+ */
+function secureUpload($file, $prefix = 'img') {
+    $allowedMime = ['image/jpeg','image/png','image/gif','image/webp'];
+    $allowedExt = ['jpg','jpeg','png','gif','webp'];
+    $maxSize = 5 * 1024 * 1024; // 5MB
+
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        return ['error' => 'Erro no upload'];
+    }
+
+    if ($file['size'] > $maxSize) {
+        return ['error' => 'Arquivo muito grande (máximo 5MB)'];
+    }
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+
+    if (!in_array($mime, $allowedMime)) {
+        return ['error' => 'Tipo de arquivo não permitido'];
+    }
+
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, $allowedExt)) {
+        return ['error' => 'Extensão não permitida'];
+    }
+
+    $newName = $prefix . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
+    $uploadDir = realpath(__DIR__.'/uploads');
+
+    if (!$uploadDir || !is_dir($uploadDir)) {
+        mkdir(__DIR__.'/uploads', 0755, true);
+        $uploadDir = realpath(__DIR__.'/uploads');
+    }
+
+    $destination = $uploadDir . DIRECTORY_SEPARATOR . $newName;
+
+    if (move_uploaded_file($file['tmp_name'], $destination)) {
+        chmod($destination, 0644);
+        return ['success' => true, 'path' => 'uploads/' . $newName];
+    }
+
+    return ['error' => 'Falha ao mover arquivo'];
+}
+
+/**
+ * Login Rate Limiting
+ */
+function checkLoginAttempts() {
+    if (!isset($_SESSION['login_attempts'])) {
+        $_SESSION['login_attempts'] = 0;
+        $_SESSION['login_last_attempt'] = time();
+    }
+
+    if (time() - $_SESSION['login_last_attempt'] > 900) {
+        $_SESSION['login_attempts'] = 0;
+    }
+
+    if ($_SESSION['login_attempts'] >= 5) {
+        $waitTime = 900 - (time() - $_SESSION['login_last_attempt']);
+        if ($waitTime > 0) {
+            return ['blocked' => true, 'wait' => ceil($waitTime / 60)];
+        }
+        $_SESSION['login_attempts'] = 0;
+    }
+
+    return ['blocked' => false];
+}
+
+function incrementLoginAttempts() {
+    $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
+    $_SESSION['login_last_attempt'] = time();
+}
+
+function resetLoginAttempts() {
+    $_SESSION['login_attempts'] = 0;
+}
+
+/**
+ * Security Headers
+ */
+function setSecurityHeaders() {
+    header("X-Frame-Options: DENY");
+    header("X-Content-Type-Options: nosniff");
+    header("X-XSS-Protection: 1; mode=block");
+    header("Referrer-Policy: strict-origin-when-cross-origin");
+}
