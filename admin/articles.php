@@ -31,9 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $allowedExt = ['jpg','jpeg','png','gif','webp'];
         if (in_array($mime, $allowedMime) && in_array($ext, $allowedExt)) {
             $newName = 'blog_' . time() . '.' . $ext;
-            if (!is_dir(__DIR__.'/../uploads')) mkdir(__DIR__.'/../uploads', 0755, true);
-            move_uploaded_file($_FILES['image']['tmp_name'], __DIR__.'/../uploads/'.$newName);
-            $image = 'uploads/' . $newName;
+            $uploadDir = __DIR__.'/../uploads';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+            if (!is_writable($uploadDir)) @chmod($uploadDir, 0777);
+            if (@move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir.'/'.$newName)) {
+                $image = 'uploads/' . $newName;
+            }
         }
     }
 
