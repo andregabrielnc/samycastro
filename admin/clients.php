@@ -37,7 +37,13 @@ $csrf = generateCsrfToken();
 <div class="form-group"><label>Nome</label><input type="text" name="name" value="<?=e($editItem['name'])?>" required></div>
 <div class="form-group"><label>Tipo (ex: Clínica, Pet Shop)</label><input type="text" name="type" value="<?=e($editItem['type'])?>"></div>
 <div class="form-group form-full"><label>Descrição</label><textarea name="description" rows="3"><?=e($editItem['description'])?></textarea></div>
-<div class="form-group"><label>Ícone (FontAwesome)</label><input type="text" name="logo_icon" value="<?=e($editItem['logo_icon'])?>"></div>
+<div class="form-group"><label>Ícone (FontAwesome)</label>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+    <div id="iconPreview" style="width:44px;height:44px;border-radius:12px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#2d5016;border:1.5px solid #e5ddd0;"><i class="<?=e($editItem['logo_icon'])?>"></i></div>
+    <input type="text" name="logo_icon" id="iconInput" value="<?=e($editItem['logo_icon'])?>" placeholder="Buscar ícone..." oninput="filterIcons(this.value)">
+</div>
+<div id="iconGrid" style="max-height:220px;overflow-y:auto;border:1.5px solid #e5ddd0;border-radius:10px;padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:6px;background:#faf8f4;"></div>
+</div>
 <div class="form-group"><label>Cor do Ícone</label><input type="color" name="logo_color" value="<?=e($editItem['logo_color'])?>"></div>
 <div class="form-group"><label>Localização</label><input type="text" name="location" value="<?=e($editItem['location'])?>"></div>
 <div class="form-group"><label>Ordem</label><input type="number" name="sort_order" value="<?=e($editItem['sort_order'])?>"></div>
@@ -58,4 +64,83 @@ $csrf = generateCsrfToken();
     </form>
 </td></tr>
 <?php endforeach;?></tbody></table></div></div>
-<?php endif;?></div></div></div></body></html>
+<?php endif;?></div></div></div>
+<?php if($editItem!==null):?>
+<script>
+(function(){
+var icons = [
+    'fas fa-hospital','fas fa-clinic-medical','fas fa-stethoscope','fas fa-heartbeat','fas fa-paw',
+    'fas fa-dog','fas fa-cat','fas fa-horse','fas fa-dove','fas fa-kiwi-bird','fas fa-fish','fas fa-spider',
+    'fas fa-bone','fas fa-syringe','fas fa-pills','fas fa-capsules','fas fa-prescription-bottle',
+    'fas fa-briefcase-medical','fas fa-first-aid','fas fa-ambulance','fas fa-medkit','fas fa-band-aid',
+    'fas fa-teeth','fas fa-tooth','fas fa-x-ray','fas fa-microscope','fas fa-vial','fas fa-vials',
+    'fas fa-dna','fas fa-flask','fas fa-thermometer-half','fas fa-weight','fas fa-eye','fas fa-ear-listen',
+    'fas fa-hand-holding-heart','fas fa-hands-holding','fas fa-handshake','fas fa-house',
+    'fas fa-store','fas fa-shop','fas fa-building','fas fa-city','fas fa-warehouse',
+    'fas fa-truck','fas fa-car','fas fa-location-dot','fas fa-map-marker-alt','fas fa-phone',
+    'fas fa-envelope','fas fa-globe','fas fa-wifi','fas fa-shield-halved','fas fa-lock',
+    'fas fa-star','fas fa-heart','fas fa-circle-check','fas fa-award','fas fa-trophy','fas fa-medal',
+    'fas fa-crown','fas fa-gem','fas fa-certificate','fas fa-ribbon','fas fa-thumbs-up',
+    'fas fa-users','fas fa-user','fas fa-user-doctor','fas fa-user-nurse','fas fa-people-group',
+    'fas fa-scissors','fas fa-shower','fas fa-bath','fas fa-soap','fas fa-spray-can',
+    'fas fa-basket-shopping','fas fa-cart-shopping','fas fa-bag-shopping','fas fa-box','fas fa-boxes-stacked',
+    'fas fa-leaf','fas fa-seedling','fas fa-tree','fas fa-sun','fas fa-moon','fas fa-cloud',
+    'fas fa-droplet','fas fa-fire','fas fa-bolt','fas fa-snowflake',
+    'fas fa-utensils','fas fa-mug-hot','fas fa-wheat-awn','fas fa-apple-whole','fas fa-carrot',
+    'fas fa-camera','fas fa-image','fas fa-video','fas fa-music','fas fa-palette',
+    'fas fa-graduation-cap','fas fa-book','fas fa-chalkboard-user','fas fa-school',
+    'fas fa-wrench','fas fa-screwdriver-wrench','fas fa-gear','fas fa-gears','fas fa-hammer',
+    'fas fa-cross','fas fa-plus','fas fa-circle-plus','fas fa-square-plus',
+    'fas fa-chart-line','fas fa-chart-bar','fas fa-chart-pie',
+    'fas fa-money-bill','fas fa-coins','fas fa-credit-card','fas fa-wallet',
+    'fas fa-clock','fas fa-calendar','fas fa-bell','fas fa-flag','fas fa-bookmark',
+    'fas fa-comment','fas fa-comments','fas fa-quote-left','fas fa-bullhorn',
+    'fas fa-link','fas fa-paperclip','fas fa-file','fas fa-folder','fas fa-database',
+    'fas fa-code','fas fa-terminal','fas fa-laptop','fas fa-desktop','fas fa-mobile-screen',
+    'fas fa-print','fas fa-fax','fas fa-headset','fas fa-satellite-dish',
+    'fas fa-plane','fas fa-ship','fas fa-bicycle','fas fa-motorcycle',
+    'fas fa-puzzle-piece','fas fa-dice','fas fa-gamepad','fas fa-futbol','fas fa-baseball',
+    'fas fa-recycle','fas fa-trash','fas fa-broom','fas fa-filter',
+    'fas fa-circle-info','fas fa-circle-question','fas fa-circle-exclamation','fas fa-triangle-exclamation',
+    'fab fa-instagram','fab fa-facebook','fab fa-whatsapp','fab fa-youtube','fab fa-tiktok','fab fa-twitter'
+];
+
+var grid = document.getElementById('iconGrid');
+var input = document.getElementById('iconInput');
+var preview = document.getElementById('iconPreview');
+var currentValue = input.value;
+
+function renderIcons(filter) {
+    grid.innerHTML = '';
+    var f = (filter || '').toLowerCase().replace('fas ','').replace('fab ','').replace('fa-','');
+    icons.forEach(function(ic) {
+        if (f && ic.toLowerCase().replace('fas ','').replace('fab ','').replace('fa-','').indexOf(f) === -1) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.title = ic;
+        btn.style.cssText = 'width:42px;height:42px;border:1.5px solid transparent;border-radius:8px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#444;transition:all 0.15s;';
+        if (ic === currentValue) btn.style.cssText += 'border-color:#2d5016;background:#e8f0e2;color:#2d5016;';
+        btn.innerHTML = '<i class="' + ic + '"></i>';
+        btn.onmouseover = function(){ if(ic!==currentValue) this.style.background='#f0ede8'; };
+        btn.onmouseout = function(){ if(ic!==currentValue) this.style.background='#fff'; };
+        btn.onclick = function(){
+            currentValue = ic;
+            input.value = ic;
+            preview.innerHTML = '<i class="' + ic + '"></i>';
+            renderIcons(f);
+        };
+        grid.appendChild(btn);
+    });
+}
+
+window.filterIcons = function(val) {
+    currentValue = val;
+    preview.innerHTML = '<i class="' + val + '"></i>';
+    renderIcons(val);
+};
+
+renderIcons('');
+})();
+</script>
+<?php endif;?>
+</body></html>
