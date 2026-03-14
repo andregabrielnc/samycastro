@@ -63,6 +63,7 @@ $waLink = "https://wa.me/{$wa}?text=" . urlencode("Olá Samy vim do site pode me
                 <li><a href="#faq">FAQ</a></li>
                 <li><a href="#contato">Contato</a></li>
                 <li><a href="/admin" class="nav-intranet"><i class="fas fa-lock"></i> Intranet</a></li>
+                <li><a href="https://instagram.com/samycastro.vet" target="_blank" rel="noopener" class="nav-instagram" aria-label="Instagram"><i class="fab fa-instagram"></i></a></li>
             </ul>
         </div>
     </nav>

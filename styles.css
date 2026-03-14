@@ -216,6 +216,17 @@ ul {
     background: rgba(255,255,255,0.15) !important;
 }
 
+.nav-instagram {
+    font-size: 1.25rem !important;
+    opacity: 0.85;
+    transition: opacity 0.3s, transform 0.3s, color 0.3s !important;
+}
+.nav-instagram:hover {
+    opacity: 1;
+    transform: scale(1.15);
+    color: #E1306C !important;
+}
+
 .mobile-toggle {
     display: none;
     flex-direction: column;
