@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
 if (isset($_GET['edit'])){$s=$db->prepare("SELECT * FROM faq WHERE id=?");$s->execute([$_GET['edit']]);$editItem=$s->fetch();}
 if (isset($_GET['new'])) $editItem=['id'=>'','category'=>'','category_icon'=>'fas fa-paw','question'=>'','answer'=>'','sort_order'=>0,'active'=>1];
 $items=$db->query("SELECT * FROM faq ORDER BY sort_order")->fetchAll();
+$categories=$db->query("SELECT DISTINCT category FROM faq WHERE category != '' ORDER BY category")->fetchAll(PDO::FETCH_COLUMN);
 if(isset($_GET['msg']))$msg='Operação realizada!';
 $csrf = generateCsrfToken();
 ?>
@@ -34,12 +35,21 @@ $csrf = generateCsrfToken();
 <input type="hidden" name="csrf_token" value="<?=e($csrf)?>">
 <input type="hidden" name="id" value="<?=e($editItem['id'])?>">
 <div class="form-grid">
-<div class="form-group"><label>Categoria</label><input type="text" name="category" value="<?=e($editItem['category'])?>" required placeholder="Ex: Cães e Gatos"></div>
-<div class="form-group"><label>Ícone da Categoria</label><input type="text" name="category_icon" value="<?=e($editItem['category_icon'])?>" placeholder="fas fa-paw"></div>
+<div class="form-group"><label>Categoria</label>
+<input type="text" name="category" id="catInput" value="<?=e($editItem['category'])?>" required placeholder="Ex: Cães e Gatos" list="catList">
+<datalist id="catList"><?php foreach($categories as $c):?><option value="<?=e($c)?>"><?php endforeach;?></datalist>
+</div>
+<div class="form-group"><label>Ícone da Categoria</label>
+<div style="display:flex;align-items:center;gap:10px;">
+    <div class="icon-picker-preview" id="iconPreview"><i class="<?=e($editItem['category_icon'])?>"></i></div>
+    <input type="text" name="category_icon" id="iconInput" value="<?=e($editItem['category_icon'])?>" placeholder="Buscar ícone...">
+</div>
+<div class="icon-picker-grid" id="iconGrid" data-icon-picker="icon"></div>
+</div>
 <div class="form-group form-full"><label>Pergunta</label><input type="text" name="question" value="<?=e($editItem['question'])?>" required></div>
 <div class="form-group form-full"><label>Resposta (aceita HTML)</label><textarea name="answer" rows="4"><?=e($editItem['answer'])?></textarea></div>
 <div class="form-group"><label>Ordem</label><input type="number" name="sort_order" value="<?=e($editItem['sort_order'])?>"></div>
-<div class="form-group"><label style="margin-bottom:10px;">Status</label><label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;text-transform:none;letter-spacing:0;"><input type="checkbox" name="active" <?=$editItem['active']?'checked':''?>> Ativo</label></div>
+<div class="form-group"><label style="margin-bottom:10px;">Status</label><label class="toggle-switch"><input type="checkbox" name="active" <?=$editItem['active']?'checked':''?>><span class="toggle-track"></span><span class="toggle-label-on">Ativo</span><span class="toggle-label-off">Inativo</span></label></div>
 </div><div class="form-actions"><button type="submit" class="btn-save"><i class="fas fa-save"></i> Salvar</button><a href="faq.php" class="btn-cancel">Cancelar</a></div></form></div>
 <?php else:?>
 <div class="admin-card"><div class="admin-card-header"><h3><?=count($items)?> perguntas</h3><a href="faq.php?new=1" class="btn-add"><i class="fas fa-plus"></i> Nova</a></div>
@@ -54,4 +64,6 @@ $csrf = generateCsrfToken();
     </form>
 </td></tr>
 <?php endforeach;?></tbody></table></div></div>
-<?php endif;?></div></div></div></body></html>
+<?php endif;?></div></div></div>
+<script src="ui-components.js"></script>
+</body></html>

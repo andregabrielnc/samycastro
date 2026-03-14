@@ -66,7 +66,13 @@ $csrf = generateCsrfToken();
                     <input type="hidden" name="id" value="<?= e($editItem['id']) ?>">
                     <div class="form-grid">
                         <div class="form-group"><label>Título</label><input type="text" name="title" value="<?= e($editItem['title']) ?>" required></div>
-                        <div class="form-group"><label>Ícone (FontAwesome)</label><input type="text" name="icon" value="<?= e($editItem['icon']) ?>"></div>
+                        <div class="form-group"><label>Ícone (FontAwesome)</label>
+<div style="display:flex;align-items:center;gap:10px;">
+    <div class="icon-picker-preview" id="iconPreview"><i class="<?= e($editItem['icon']) ?>"></i></div>
+    <input type="text" name="icon" id="iconInput" value="<?= e($editItem['icon']) ?>" placeholder="Buscar ícone...">
+</div>
+<div class="icon-picker-grid" id="iconGrid" data-icon-picker="icon"></div>
+</div>
                         <div class="form-group form-full"><label>Descrição</label><textarea name="description" rows="4"><?= e($editItem['description']) ?></textarea></div>
                         <div class="form-group"><label>Imagem</label>
                             <input type="text" name="image" value="<?= e($editItem['image']) ?>">
@@ -75,7 +81,7 @@ $csrf = generateCsrfToken();
                         </div>
                         <div class="form-group"><label>Texto WhatsApp</label><input type="text" name="whatsapp_text" value="<?= e($editItem['whatsapp_text']) ?>"></div>
                         <div class="form-group"><label>Ordem</label><input type="number" name="sort_order" value="<?= e($editItem['sort_order']) ?>"></div>
-                        <div class="form-group"><label style="margin-bottom:10px;">Status</label><label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;text-transform:none;letter-spacing:0;"><input type="checkbox" name="active" <?= $editItem['active']?'checked':'' ?>> Ativo</label></div>
+                        <div class="form-group"><label style="margin-bottom:10px;">Status</label><label class="toggle-switch"><input type="checkbox" name="active" <?= $editItem['active']?'checked':'' ?>><span class="toggle-track"></span><span class="toggle-label-on">Ativo</span><span class="toggle-label-off">Inativo</span></label></div>
                     </div>
                     <div class="form-actions"><button type="submit" class="btn-save"><i class="fas fa-save"></i> Salvar</button><a href="services.php" class="btn-cancel">Cancelar</a></div>
                 </form>
@@ -100,4 +106,5 @@ $csrf = generateCsrfToken();
         </div>
     </div>
 </div>
+<script src="ui-components.js"></script>
 </body></html>

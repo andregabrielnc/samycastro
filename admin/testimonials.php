@@ -35,13 +35,21 @@ $csrf = generateCsrfToken();
 <input type="hidden" name="id" value="<?=e($editItem['id'])?>">
 <div class="form-grid">
 <div class="form-group"><label>Nome</label><input type="text" name="name" value="<?=e($editItem['name'])?>" required></div>
-<div class="form-group"><label>Iniciais (avatar)</label><input type="text" name="initials" value="<?=e($editItem['initials'])?>" maxlength="3"></div>
-<div class="form-group"><label>Cor do Avatar</label><input type="color" name="color" value="<?=e($editItem['color'])?>"></div>
-<div class="form-group"><label>Nota (1-5)</label><input type="number" name="rating" value="<?=e($editItem['rating'])?>" min="1" max="5" step="0.5"></div>
+<div class="form-group"><label>Iniciais (avatar)</label>
+<div style="display:flex;align-items:center;gap:10px;">
+    <div id="avatarPreview" style="width:44px;height:44px;border-radius:50%;background:<?=e($editItem['color'])?>;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;"><?=e($editItem['initials'])?></div>
+    <input type="text" name="initials" id="initialsInput" value="<?=e($editItem['initials'])?>" maxlength="3" style="flex:1;">
+</div>
+</div>
+<div class="form-group"><label>Cor do Avatar</label><input type="color" name="color" id="colorInput" value="<?=e($editItem['color'])?>"></div>
+<div class="form-group"><label>Nota</label>
+<input type="hidden" name="rating" id="ratingInput" value="<?=e($editItem['rating'])?>">
+<div class="star-rating-container" id="ratingStars" data-star-rating="rating"></div>
+</div>
 <div class="form-group form-full"><label>Depoimento</label><textarea name="text" rows="3"><?=e($editItem['text'])?></textarea></div>
 <div class="form-group"><label>Data (ex: há 2 semanas)</label><input type="text" name="date_label" value="<?=e($editItem['date_label'])?>"></div>
 <div class="form-group"><label>Ordem</label><input type="number" name="sort_order" value="<?=e($editItem['sort_order'])?>"></div>
-<div class="form-group"><label style="margin-bottom:10px;">Status</label><label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;text-transform:none;letter-spacing:0;"><input type="checkbox" name="active" <?=$editItem['active']?'checked':''?>> Ativo</label></div>
+<div class="form-group"><label style="margin-bottom:10px;">Status</label><label class="toggle-switch"><input type="checkbox" name="active" <?=$editItem['active']?'checked':''?>><span class="toggle-track"></span><span class="toggle-label-on">Ativo</span><span class="toggle-label-off">Inativo</span></label></div>
 </div><div class="form-actions"><button type="submit" class="btn-save"><i class="fas fa-save"></i> Salvar</button><a href="testimonials.php" class="btn-cancel">Cancelar</a></div></form></div>
 <?php else:?>
 <div class="admin-card"><div class="admin-card-header"><h3><?=count($items)?> depoimentos</h3><a href="testimonials.php?new=1" class="btn-add"><i class="fas fa-plus"></i> Novo</a></div>
@@ -56,4 +64,16 @@ $csrf = generateCsrfToken();
     </form>
 </td></tr>
 <?php endforeach;?></tbody></table></div></div>
-<?php endif;?></div></div></div></body></html>
+<?php endif;?></div></div></div>
+<script src="ui-components.js"></script>
+<?php if($editItem!==null):?>
+<script>
+document.getElementById('initialsInput').addEventListener('input', function(){
+    document.getElementById('avatarPreview').textContent = this.value;
+});
+document.getElementById('colorInput').addEventListener('input', function(){
+    document.getElementById('avatarPreview').style.background = this.value;
+});
+</script>
+<?php endif;?>
+</body></html>
