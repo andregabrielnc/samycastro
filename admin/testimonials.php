@@ -1,8 +1,16 @@
 <?php
 require_once 'auth.php';
 $db = getDB(); $msg = ''; $editItem = null;
-if (isset($_GET['delete'])) { $db->prepare("DELETE FROM testimonials WHERE id=?")->execute([$_GET['delete']]); header("Location: testimonials.php?msg=ok"); exit; }
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+// Delete via POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) { die('Token CSRF inválido'); }
+    $db->prepare("DELETE FROM testimonials WHERE id=?")->execute([$_POST['delete_id']]);
+    header("Location: testimonials.php?msg=ok"); exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) { die('Token CSRF inválido'); }
     $id=$_POST['id']??'';$name=$_POST['name'];$initials=$_POST['initials'];$color=$_POST['color'];$rating=$_POST['rating'];$text=$_POST['text'];$date_label=$_POST['date_label'];$order=$_POST['sort_order']??0;$active=isset($_POST['active'])?1:0;
     if ($id) $db->prepare("UPDATE testimonials SET name=?,initials=?,color=?,rating=?,text=?,date_label=?,sort_order=?,active=? WHERE id=?")->execute([$name,$initials,$color,$rating,$text,$date_label,$order,$active,$id]);
     else $db->prepare("INSERT INTO testimonials (name,initials,color,rating,text,date_label,sort_order,active) VALUES(?,?,?,?,?,?,?,?)")->execute([$name,$initials,$color,$rating,$text,$date_label,$order,$active]);
@@ -12,6 +20,7 @@ if (isset($_GET['edit'])){$s=$db->prepare("SELECT * FROM testimonials WHERE id=?
 if (isset($_GET['new'])) $editItem=['id'=>'','name'=>'','initials'=>'','color'=>'#4285f4','rating'=>5,'text'=>'','date_label'=>'','sort_order'=>0,'active'=>1];
 $items=$db->query("SELECT * FROM testimonials ORDER BY sort_order")->fetchAll();
 if(isset($_GET['msg']))$msg='Operação realizada!';
+$csrf = generateCsrfToken();
 ?>
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Depoimentos - Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
@@ -21,7 +30,9 @@ if(isset($_GET['msg']))$msg='Operação realizada!';
 <div class="content">
 <?php if($msg):?><div class="alert alert-success"><i class="fas fa-check"></i> <?=e($msg)?></div><?php endif;?>
 <?php if($editItem!==null):?>
-<div class="admin-card"><form method="POST"><input type="hidden" name="id" value="<?=e($editItem['id'])?>">
+<div class="admin-card"><form method="POST">
+<input type="hidden" name="csrf_token" value="<?=e($csrf)?>">
+<input type="hidden" name="id" value="<?=e($editItem['id'])?>">
 <div class="form-grid">
 <div class="form-group"><label>Nome</label><input type="text" name="name" value="<?=e($editItem['name'])?>" required></div>
 <div class="form-group"><label>Iniciais (avatar)</label><input type="text" name="initials" value="<?=e($editItem['initials'])?>" maxlength="3"></div>
@@ -36,6 +47,13 @@ if(isset($_GET['msg']))$msg='Operação realizada!';
 <div class="admin-card"><div class="admin-card-header"><h3><?=count($items)?> depoimentos</h3><a href="testimonials.php?new=1" class="btn-add"><i class="fas fa-plus"></i> Novo</a></div>
 <div class="table-responsive"><table class="admin-table"><thead><tr><th>Avatar</th><th>Nome</th><th>Nota</th><th>Ações</th></tr></thead><tbody>
 <?php foreach($items as $i):?><tr><td><div style="width:36px;height:36px;border-radius:50%;background:<?=e($i['color'])?>;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;"><?=e($i['initials'])?></div></td><td><?=e($i['name'])?></td><td><?=$i['rating']?> ⭐</td>
-<td><a href="testimonials.php?edit=<?=$i['id']?>" class="btn-sm btn-edit"><i class="fas fa-edit"></i></a> <a href="testimonials.php?delete=<?=$i['id']?>" class="btn-sm btn-delete" onclick="return confirm('Excluir?')"><i class="fas fa-trash"></i></a></td></tr>
+<td>
+    <a href="testimonials.php?edit=<?=$i['id']?>" class="btn-sm btn-edit"><i class="fas fa-edit"></i></a>
+    <form method="POST" style="display:inline;" onsubmit="return confirm('Excluir?')">
+        <input type="hidden" name="csrf_token" value="<?=e($csrf)?>">
+        <input type="hidden" name="delete_id" value="<?=$i['id']?>">
+        <button type="submit" class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
+    </form>
+</td></tr>
 <?php endforeach;?></tbody></table></div></div>
 <?php endif;?></div></div></div></body></html>

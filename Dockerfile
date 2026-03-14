@@ -19,6 +19,10 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
 # Enable Apache modules
 RUN a2enmod rewrite headers
 
+# Increase PHP upload limits
+RUN echo "upload_max_filesize = 10M" > /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "post_max_size = 12M" >> /usr/local/etc/php/conf.d/uploads.ini
+
 # Set working directory
 WORKDIR /var/www/html
 

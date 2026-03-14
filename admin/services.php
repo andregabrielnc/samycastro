@@ -7,23 +7,23 @@ $table = 'services';
 $fields = ['title','description','icon','image','whatsapp_text','sort_order','active'];
 $title = 'Serviços';
 
-if (isset($_GET['delete'])) { $db->prepare("DELETE FROM {$table} WHERE id = ?")->execute([$_GET['delete']]); header("Location: services.php?msg=ok"); exit; }
+// Delete via POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) { die('Token CSRF inválido'); }
+    $db->prepare("DELETE FROM {$table} WHERE id = ?")->execute([$_POST['delete_id']]);
+    header("Location: services.php?msg=ok"); exit;
+}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) { die('Token CSRF inválido'); }
     $id = $_POST['id'] ?? '';
     $data = [];
     foreach ($fields as $f) $data[$f] = $_POST[$f] ?? '';
     $data['active'] = isset($_POST['active']) ? 1 : 0;
     if (!empty($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
-        $allowedMime = ['image/jpeg','image/png','image/gif','image/webp'];
-        $mime = mime_content_type($_FILES['image_file']['tmp_name']);
-        $allowedExt = ['jpg','jpeg','png','gif','webp'];
-        $ext = strtolower(pathinfo($_FILES['image_file']['name'], PATHINFO_EXTENSION));
-        if (in_array($mime, $allowedMime) && in_array($ext, $allowedExt)) {
-            $nm = 'svc_'.time().'.'.$ext;
-            if (!is_dir(__DIR__.'/../uploads')) mkdir(__DIR__.'/../uploads',0755,true);
-            move_uploaded_file($_FILES['image_file']['tmp_name'], __DIR__.'/../uploads/'.$nm);
-            $data['image'] = 'uploads/'.$nm;
+        $result = secureUpload($_FILES['image_file'], 'svc');
+        if (isset($result['success'])) {
+            $data['image'] = $result['path'];
         }
     }
     if ($id) {
@@ -41,6 +41,7 @@ if (isset($_GET['edit'])) { $stmt = $db->prepare("SELECT * FROM {$table} WHERE i
 if (isset($_GET['new'])) $editItem = ['id'=>'','title'=>'','description'=>'','icon'=>'fas fa-paw','image'=>'','whatsapp_text'=>'','sort_order'=>0,'active'=>1];
 $items = $db->query("SELECT * FROM {$table} ORDER BY sort_order")->fetchAll();
 if (isset($_GET['msg'])) $msg = 'Operação realizada!';
+$csrf = generateCsrfToken();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -61,6 +62,7 @@ if (isset($_GET['msg'])) $msg = 'Operação realizada!';
             <?php if ($editItem !== null): ?>
             <div class="admin-card">
                 <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
                     <input type="hidden" name="id" value="<?= e($editItem['id']) ?>">
                     <div class="form-grid">
                         <div class="form-group"><label>Título</label><input type="text" name="title" value="<?= e($editItem['title']) ?>" required></div>
@@ -84,7 +86,14 @@ if (isset($_GET['msg'])) $msg = 'Operação realizada!';
                 <div class="table-responsive"><table class="admin-table"><thead><tr><th>Img</th><th>Título</th><th>Ordem</th><th>Status</th><th>Ações</th></tr></thead><tbody>
                 <?php foreach ($items as $i): ?>
                 <tr><td><img src="../<?= e($i['image']) ?>"></td><td><?= e($i['title']) ?></td><td><?= $i['sort_order'] ?></td><td><span class="<?= $i['active']?'badge-active':'badge-inactive' ?>"><?= $i['active']?'Ativo':'Inativo' ?></span></td>
-                <td><a href="services.php?edit=<?= $i['id'] ?>" class="btn-sm btn-edit"><i class="fas fa-edit"></i></a> <a href="services.php?delete=<?= $i['id'] ?>" class="btn-sm btn-delete" onclick="return confirm('Excluir?')"><i class="fas fa-trash"></i></a></td></tr>
+                <td>
+                    <a href="services.php?edit=<?= $i['id'] ?>" class="btn-sm btn-edit"><i class="fas fa-edit"></i></a>
+                    <form method="POST" style="display:inline;" onsubmit="return confirm('Excluir?')">
+                        <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
+                        <input type="hidden" name="delete_id" value="<?= $i['id'] ?>">
+                        <button type="submit" class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
+                    </form>
+                </td></tr>
                 <?php endforeach; ?></tbody></table></div>
             </div>
             <?php endif; ?>

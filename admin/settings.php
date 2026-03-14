@@ -4,6 +4,7 @@ $db = getDB();
 $msg = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) { die('Token CSRF inválido'); }
     foreach ($_POST as $key => $value) {
         if (strpos($key, 'setting_') === 0) {
             $settingKey = substr($key, 8);
@@ -15,17 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($_FILES as $key => $file) {
             if ($file['error'] === UPLOAD_ERR_OK && strpos($key, 'file_') === 0) {
                 $settingKey = substr($key, 5);
-                $allowedMime = ['image/jpeg','image/png','image/gif','image/webp'];
-                $mime = mime_content_type($file['tmp_name']);
-                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-                $allowedExt = ['jpg','jpeg','png','gif','webp'];
-                if (in_array($mime, $allowedMime) && in_array($ext, $allowedExt)) {
-                    $newName = $settingKey . '_' . time() . '.' . $ext;
-                    $dest = __DIR__ . '/../uploads/' . $newName;
-                    if (!is_dir(__DIR__ . '/../uploads')) mkdir(__DIR__ . '/../uploads', 0755, true);
-                    if (move_uploaded_file($file['tmp_name'], $dest)) {
-                        $db->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?")->execute(['uploads/' . $newName, $settingKey]);
-                    }
+                $result = secureUpload($file, $settingKey);
+                if (isset($result['success'])) {
+                    $db->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?")->execute([$result['path'], $settingKey]);
                 }
             }
         }
@@ -39,6 +32,7 @@ foreach ($settings as $s) {
     $groups[$s['setting_group']][] = $s;
 }
 $groupLabels = ['hero'=>'🏠 Hero / Página Inicial','sobre'=>'👤 Sobre Mim','cta'=>'📢 Chamada para Ação','equipe'=>'👥 Equipe','contato'=>'📞 Contato e Rodapé','blog'=>'📝 Blog'];
+$csrf = generateCsrfToken();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -63,6 +57,7 @@ $groupLabels = ['hero'=>'🏠 Hero / Página Inicial','sobre'=>'👤 Sobre Mim',
         <div class="content">
             <?php if ($msg): ?><div class="alert alert-success"><i class="fas fa-check"></i> <?= e($msg) ?></div><?php endif; ?>
             <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
                 <?php foreach ($groups as $group => $items): ?>
                 <div class="admin-card settings-group">
                     <h3><?= $groupLabels[$group] ?? ucfirst($group) ?></h3>
