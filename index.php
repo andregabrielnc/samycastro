@@ -427,10 +427,15 @@ $waLink = "https://wa.me/{$wa}?text=" . urlencode("Olá Samy vim do site pode me
     </footer>
 
     <!-- WHATSAPP FLOAT -->
-    <a href="<?= $waLink ?>" class="whatsapp-float" target="_blank" aria-label="WhatsApp" id="whatsappFloat">
-        <i class="fab fa-whatsapp"></i>
-        <span class="whatsapp-tooltip">Fale conosco!</span>
-    </a>
+    <div class="float-buttons">
+        <a href="https://instagram.com/samycastro.vet" class="instagram-float" target="_blank" rel="noopener" aria-label="Instagram">
+            <i class="fab fa-instagram"></i>
+        </a>
+        <a href="<?= $waLink ?>" class="whatsapp-float" target="_blank" aria-label="WhatsApp" id="whatsappFloat">
+            <i class="fab fa-whatsapp"></i>
+            <span class="whatsapp-tooltip">Fale conosco!</span>
+        </a>
+    </div>
 
     <script src="script.js"></script>
 </body>

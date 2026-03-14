@@ -1364,10 +1364,18 @@ ul {
 }
 
 /* ---------- WhatsApp Float ---------- */
-.whatsapp-float {
+.float-buttons {
     position: fixed;
     bottom: 28px;
     right: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 999;
+    align-items: center;
+}
+
+.whatsapp-float {
     width: 60px;
     height: 60px;
     background: #25D366;
@@ -1378,14 +1386,43 @@ ul {
     justify-content: center;
     font-size: 1.8rem;
     box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
-    z-index: 999;
     transition: var(--transition);
     animation: whatsapp-pulse 2s infinite;
+    position: relative;
 }
 
 .whatsapp-float:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 28px rgba(37, 211, 102, 0.5);
+}
+
+.instagram-float {
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+    color: white;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    box-shadow: 0 4px 20px rgba(214, 36, 159, 0.4);
+    transition: var(--transition);
+    animation: instagram-pulse 2s infinite;
+}
+
+.instagram-float:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 28px rgba(214, 36, 159, 0.5);
+}
+
+@keyframes instagram-pulse {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(214, 36, 159, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(214, 36, 159, 0.2), 0 0 0 12px rgba(214, 36, 159, 0.1);
+    }
 }
 
 .whatsapp-tooltip {
@@ -1636,9 +1673,18 @@ ul {
         font-size: 0.95rem;
     }
 
-    .whatsapp-float {
+    .float-buttons {
         bottom: 20px;
         right: 20px;
+        gap: 12px;
+    }
+    .whatsapp-float {
+        width: 54px;
+        height: 54px;
+        font-size: 1.5rem;
+    }
+    .instagram-float {
+        display: flex;
         width: 54px;
         height: 54px;
         font-size: 1.5rem;
