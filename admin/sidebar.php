@@ -19,7 +19,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
         <a href="specialties.php" class="<?= $currentPage==='specialties'?'active':'' ?>"><i class="fas fa-award"></i> Especialidades</a>
         <a href="clients.php" class="<?= $currentPage==='clients'?'active':'' ?>"><i class="fas fa-handshake"></i> Clientes / Parceiros</a>
         <div class="divider"></div>
-        <a href="credentials.php" class="<?= $currentPage==='credentials'?'active':'' ?>"><i class="fas fa-database"></i> Banco de Dados</a>
+        <a href="users.php" class="<?= $currentPage==='users'?'active':'' ?>"><i class="fas fa-user-cog"></i> Usuários</a>
         <a href="password.php" class="<?= $currentPage==='password'?'active':'' ?>"><i class="fas fa-key"></i> Alterar Senha</a>
         <div class="divider"></div>
         <a href="../index.php" target="_blank"><i class="fas fa-external-link-alt"></i> Ver Site</a>

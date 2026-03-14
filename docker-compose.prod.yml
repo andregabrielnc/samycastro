@@ -1,0 +1,106 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: samycastro-web
+    restart: unless-stopped
+    expose:
+      - "80"
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+    volumes:
+      - app-data:/var/www/html
+      - uploads-data:/var/www/html/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - samycastro-internal
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.samycastro.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.samycastro.entryPoints=https"
+      - "traefik.http.routers.samycastro.tls=true"
+      - "traefik.http.routers.samycastro.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.samycastro.middlewares=samycastro-headers,samycastro-gzip"
+      - "traefik.http.routers.samycastro-www.rule=Host(`www.${DOMAIN}`)"
+      - "traefik.http.routers.samycastro-www.entryPoints=https"
+      - "traefik.http.routers.samycastro-www.tls=true"
+      - "traefik.http.routers.samycastro-www.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.samycastro-www.middlewares=samycastro-www-redirect"
+      - "traefik.http.middlewares.samycastro-www-redirect.redirectregex.regex=^https://www\\.(.+)"
+      - "traefik.http.middlewares.samycastro-www-redirect.redirectregex.replacement=https://$${1}"
+      - "traefik.http.middlewares.samycastro-www-redirect.redirectregex.permanent=true"
+      - "traefik.http.middlewares.samycastro-gzip.compress=true"
+      - "traefik.http.middlewares.samycastro-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.samycastro-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.samycastro-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.samycastro-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.samycastro-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.samycastro-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.samycastro-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.services.samycastro.loadbalancer.server.port=80"
+
+  db:
+    image: mysql:8.0
+    container_name: samycastro-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    expose:
+      - "3306"
+    networks:
+      - samycastro-internal
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: samycastro-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: samycastro-db
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER}
+      PMA_PASSWORD: ${DB_PASS}
+    expose:
+      - "80"
+    depends_on:
+      - db
+    networks:
+      - samycastro-internal
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.phpmyadmin.rule=Host(`pma.${DOMAIN}`)"
+      - "traefik.http.routers.phpmyadmin.entryPoints=https"
+      - "traefik.http.routers.phpmyadmin.tls=true"
+      - "traefik.http.routers.phpmyadmin.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.phpmyadmin.middlewares=phpmyadmin-auth"
+      - "traefik.http.middlewares.phpmyadmin-auth.basicauth.users=admin:$$apr1$$Cc706fnw$$kdxwyB4wfmInmNVfuOjkD0"
+      - "traefik.http.services.phpmyadmin.loadbalancer.server.port=80"
+
+networks:
+  samycastro-internal:
+    driver: bridge
+  traefik-public:
+    external: true
+
+volumes:
+  mysql-data:
+  uploads-data:
+  app-data:
